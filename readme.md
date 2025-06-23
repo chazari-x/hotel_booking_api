@@ -46,6 +46,7 @@ psql -U postgres -d hotel_booking -f init.sql
 ```env
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/hotel_booking
 PORT=3000
+CLIENTS_API_URL=http://localhost:3000/clients
 ```
 
 #### 5. Запустите сервер
