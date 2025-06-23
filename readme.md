@@ -4,7 +4,8 @@
 - Клиент может увидеть список свободных номеров в отеле на определенный период времени
 - Клиент может забронировать номер в отеле на определенный срок
 - Клиент может отменить бронь номера в отеле
-- Клиент может быть VIP а может и не быть (запрос удаленного api сервера для проверки) Необходимо фиксировать информацию в бронь
+- Клиент может быть VIP а может и не быть (запрос удаленного api сервера для проверки) Необходимо фиксировать информацию
+  в бронь
   - Сейчас запросы идут на `/clients/:id`, а полученные данные копируются в бронь
   - Никакой связи бронирования с клиентом нет, хранятся только данные клиента на момент бронирования
 - 2 клиента не могут одновременно забронировать один и тот же номер в отеле на пересекающиеся периоды
@@ -67,17 +68,47 @@ npm start
 
 ### Вариант 2. Запуск с Docker и Docker Compose
 
-#### 1. Убедитесь, что установлен Docker и Docker Compose
+#### 1. Убедитесь, что у вас установлены Docker и Docker Compose.
 
-#### 2. Создайте `.env`
+#### 2. В корне проекта создайте файл `docker-compose.yml` со следующим содержимым:
 
-```env
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/hotel_booking
-PORT=3000
-CLIENTS_API_URL=http://localhost:3000/clients
+```yaml
+version: "3.8"
+
+services:
+  db:
+    container_name: postgres
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_DB: hotel_booking
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+
+  app:
+    container_name: hotel_booking_api
+    image: chazari/hotel_booking_api:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/hotel_booking
+      - PORT=3000
+      - CLIENTS_API_URL=http://localhost:3000/clients
+    depends_on:
+      - db
+
+volumes:
+  db_data:
 ```
 
-#### 3. Запустите контейнеры
+#### 3. Убедитесь, что файл `init.sql` с начальной схемой базы данных находится в той же папке.
+
+#### 4. Запустите контейнеры командой:
 
 ```bash
 docker-compose up --build
